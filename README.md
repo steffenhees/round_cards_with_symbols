@@ -1,1 +1,2 @@
-# round_cards_with_symbols
+#Round Cards with Symbols
+##Ein Achtsamkeits-Kartenspiel zum selber basteln und verschenken

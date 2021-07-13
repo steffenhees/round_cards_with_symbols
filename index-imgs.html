@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Round Cards with Symbols</title>
+    <meta name="author" content="Steffen Hees">
+    <meta name="version" content="2021-07-13--16-00">
+</head>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .page {
+        width: 210mm;
+        height: 297mm;
+        position: relative;
+        border: 1px solid black;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    .circle {
+        width: 85mm;
+        height: 85mm;
+        border: 2px solid black;
+        border-radius: 50%;
+        position: absolute;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    @media print {
+        html, body {
+            width: 210mm;
+            height: 297mm;
+        }
+
+        .circle {
+            border: none;
+        }
+
+        .page {
+            border: 1px solid white;
+        }
+    }
+</style>
+<body>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let imagesDirectory = 'imgs_' + urlParams.get('imgs');
+
+    // imagesDirectory = 'imgs_drinks';
+    // imagesDirectory = 'imgs_cyberpunk';
+    // imagesDirectory = 'imgs_dogs';
+    // imagesDirectory = 'imgs_f1';
+
+    /*************************
+    // Polyfill: Array.shuffle
+    *************************/
+    Object.defineProperty(Array.prototype, 'shuffle', {
+        value: function() {
+            for (let i = this.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [this[i], this[j]] = [this[j], this[i]];
+            }
+            return this;
+        }
+    });
+
+    /**************
+    // Card Layouts
+    **************/
+    let symbolSets = [
+        [{"x":29,"y":0,"angle":46,"scale":1},{"x":17,"y":-24.5,"angle":-133,"scale":0.7599999999999998},{"x":-17.5,"y":-25.5,"angle":53,"scale":1},{"x":-26.5,"y":3,"angle":0,"scale":1.09},{"x":-15.5,"y":23.5,"angle":90,"scale":0.5799999999999996},{"x":6,"y":27.5,"angle":195,"scale":0.97},{"x":8.5,"y":7.5,"angle":89,"scale":0.5799999999999996},{"x":-1.5,"y":-7.5,"angle":127,"scale":0.7299999999999998}],
+        [{"x":-1,"y":0,"angle":0,"scale":1},{"x":-19.5,"y":-20,"angle":143,"scale":0.6699999999999997},{"x":2.5,"y":-29,"angle":-17,"scale":1},{"x":27,"y":-17,"angle":70,"scale":0.6999999999999997},{"x":29.5,"y":7,"angle":-70,"scale":1},{"x":6.5,"y":29.5,"angle":0,"scale":1},{"x":-31.5,"y":0,"angle":87,"scale":0.6699999999999997},{"x":-18.5,"y":20.5,"angle":44,"scale":0.8799999999999999}],
+        [{"x":-32.5,"y":0,"angle":-51,"scale":0.7299999999999998},{"x":-13.5,"y":-18,"angle":34,"scale":1},{"x":9,"y":-29.5,"angle":-36,"scale":0.8499999999999999},{"x":27,"y":9,"angle":96,"scale":1},{"x":29,"y":-15,"angle":22,"scale":0.6699999999999997},{"x":2,"y":27,"angle":49,"scale":1},{"x":-22.5,"y":19,"angle":20,"scale":0.8499999999999999},{"x":6.5,"y":-4.5,"angle":16,"scale":0.6999999999999997}],
+        [{"x":-32,"y":0,"angle":17,"scale":0.8499999999999999},{"x":-17.5,"y":-25,"angle":-27,"scale":0.8499999999999999},{"x":7.5,"y":-30.5,"angle":26,"scale":0.8499999999999999},{"x":29,"y":-10.5,"angle":-15,"scale":0.8499999999999999},{"x":27.5,"y":14,"angle":-38,"scale":0.8199999999999998},{"x":7.5,"y":31.5,"angle":77,"scale":0.8499999999999999},{"x":-17.5,"y":25.5,"angle":-154,"scale":0.7599999999999998},{"x":-7.5,"y":6.5,"angle":0,"scale":0.5799999999999996}],
+        [{"x":-30.5,"y":-7,"angle":84,"scale":0.8199999999999998},{"x":27,"y":-4,"angle":-48,"scale":1},{"x":-1.5,"y":-29.5,"angle":95,"scale":1},{"x":5.5,"y":28.5,"angle":-26,"scale":0.97},{"x":-8,"y":-5.5,"angle":43,"scale":0.7299999999999998},{"x":6,"y":6,"angle":-49,"scale":0.6399999999999997},{"x":-21.5,"y":21.5,"angle":151,"scale":0.6399999999999997},{"x":21,"y":-26,"angle":60,"scale":0.48999999999999955}],
+        [{"x":-25.5,"y":-15,"angle":-37,"scale":1},{"x":-2.5,"y":-28.5,"angle":39,"scale":1},{"x":19,"y":-14.5,"angle":22,"scale":1},{"x":30,"y":8,"angle":159,"scale":0.6999999999999997},{"x":12.5,"y":26.5,"angle":172,"scale":1},{"x":-13,"y":24.5,"angle":112,"scale":1},{"x":-29,"y":8.5,"angle":0,"scale":0.6399999999999997},{"x":-4.5,"y":2.5,"angle":82,"scale":0.7599999999999998}],
+        [{"x":-15,"y":-24.5,"angle":150,"scale":1},{"x":13.5,"y":-24,"angle":191,"scale":1},{"x":30,"y":3,"angle":-82,"scale":1},{"x":13,"y":25.5,"angle":0,"scale":1},{"x":-13,"y":26,"angle":15,"scale":1},{"x":-30,"y":1,"angle":-89,"scale":1},{"x":-8.5,"y":-1.5,"angle":0,"scale":0.7599999999999998},{"x":8.5,"y":3.5,"angle":-78,"scale":0.6699999999999997}],
+        [{"x":-11,"y":27.5,"angle":-162,"scale":1},{"x":10.5,"y":31,"angle":0,"scale":0.5199999999999996},{"x":26,"y":12.5,"angle":108,"scale":1},{"x":16.5,"y":-16,"angle":-91,"scale":1},{"x":-8,"y":-26.5,"angle":6,"scale":1},{"x":-29.5,"y":-18.5,"angle":70,"scale":0.5499999999999996},{"x":-29,"y":2.5,"angle":-103,"scale":1},{"x":-4,"y":3,"angle":0,"scale":0.8499999999999999}],
+        [{"x":0,"y":29,"angle":-48,"scale":1},{"x":23.5,"y":19.5,"angle":14,"scale":0.7599999999999998},{"x":27.5,"y":-5,"angle":-139,"scale":1},{"x":-25.5,"y":13,"angle":-145,"scale":1},{"x":-25.5,"y":-10.5,"angle":0,"scale":0.7599999999999998},{"x":15.5,"y":-26.5,"angle":0,"scale":0.7299999999999998},{"x":-2,"y":-10,"angle":-40,"scale":0.8199999999999998},{"x":-10.5,"y":-30.5,"angle":50,"scale":0.7299999999999998}],
+        [{"x":-1.5,"y":28,"angle":-113,"scale":1},{"x":23.5,"y":15.5,"angle":28,"scale":1},{"x":26.5,"y":-13.5,"angle":-108,"scale":1},{"x":-26.5,"y":13.5,"angle":61,"scale":1},{"x":-25.5,"y":-14.5,"angle":-69,"scale":1},{"x":-5.5,"y":-31,"angle":-119,"scale":0.6399999999999997},{"x":-1,"y":-14,"angle":65,"scale":0.6099999999999997},{"x":-1.5,"y":5,"angle":-111,"scale":0.8199999999999998}],
+        [{"x":-17.5,"y":-23.5,"angle":1,"scale":0.7299999999999998},{"x":30.5,"y":0,"angle":0,"scale":0.6699999999999997},{"x":-17,"y":24.5,"angle":0,"scale":0.6999999999999997},{"x":7.5,"y":-28.5,"angle":178,"scale":1},{"x":12,"y":26,"angle":0,"scale":1},{"x":-28,"y":0,"angle":58,"scale":1},{"x":14.5,"y":-7.5,"angle":23,"scale":0.6999999999999997},{"x":-3,"y":4,"angle":160,"scale":0.6699999999999997}],
+        [{"x":-30.5,"y":2,"angle":44,"scale":0.8199999999999998},{"x":-15,"y":-25,"angle":155,"scale":0.8499999999999999},{"x":10.5,"y":-26.5,"angle":56,"scale":1},{"x":28,"y":0.5,"angle":0,"scale":1},{"x":16,"y":25,"angle":-106,"scale":1},{"x":-10.5,"y":27.5,"angle":0,"scale":1},{"x":-3.5,"y":5,"angle":-133,"scale":0.6399999999999997},{"x":9,"y":-3.5,"angle":57,"scale":0.48999999999999955}],
+        [{"x":-29.5,"y":0,"angle":-90,"scale":0.7599999999999998},{"x":0,"y":-31,"angle":0,"scale":0.7599999999999998},{"x":29.5,"y":0,"angle":92,"scale":0.6999999999999997},{"x":0,"y":29.5,"angle":177,"scale":0.7599999999999998},{"x":-21.5,"y":-21,"angle":-55,"scale":0.7599999999999998},{"x":19.5,"y":-20,"angle":47,"scale":0.7599999999999998},{"x":20.5,"y":20.5,"angle":138,"scale":0.7299999999999998},{"x":-20,"y":20.5,"angle":-134,"scale":0.7899999999999998}],
+        [{"x":-31.5,"y":-1,"angle":92,"scale":0.9099999999999999},{"x":7.5,"y":-29.5,"angle":181,"scale":0.97},{"x":29.5,"y":-5.5,"angle":-92,"scale":1},{"x":0,"y":32,"angle":0,"scale":0.94},{"x":-21.5,"y":21.5,"angle":40,"scale":0.7299999999999998},{"x":25.5,"y":19.5,"angle":-36,"scale":0.7599999999999998},{"x":-18.5,"y":-25,"angle":119,"scale":0.6699999999999997},{"x":-0.5,"y":-3.5,"angle":-143,"scale":0.94}],
+    ];
+
+    /********************
+    // Card Layout Editor
+    ********************/
+    let activeCard = 0;
+    let activeSymbol = 0;
+    let symbols = [];
+
+    // Letters: Select active Card
+    // Numbers: Select active Symbol
+    // Arrow keys: Move Symbol
+    // + / -: Scale Symbol
+    // , / .: Rotate Symbol
+    // m: Write layout of active card to Browser Console. Add this to symbolSets.
+    window.addEventListener('keydown', (event) => {
+        if(event.defaultPrevented) return;
+
+        switch(event.key) {
+            case 'a':
+                activeCard = 0;
+                break;
+            case 'b':
+                activeCard = 1;
+                break;
+            case 'c':
+                activeCard = 2;
+                break;
+            case 'd':
+                activeCard = 3;
+                break;
+            case 'e':
+                activeCard = 4;
+                break;
+            case 'f':
+                activeCard = 5;
+                break;
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+                activeSymbol = parseInt(event.key) - 1;
+                break;
+            case 'ArrowDown':
+                symbols[activeCard][activeSymbol].y += 0.5;
+                break;
+            case 'ArrowUp':
+                symbols[activeCard][activeSymbol].y -= 0.5;
+                break;
+            case 'ArrowLeft':
+                symbols[activeCard][activeSymbol].x -= 0.5;
+                break;
+            case 'ArrowRight':
+                symbols[activeCard][activeSymbol].x += 0.5;
+                break;
+            case '+':
+                symbols[activeCard][activeSymbol].scale += 0.03;
+                break;
+            case '-':
+                symbols[activeCard][activeSymbol].scale -= 0.03;
+                break;
+            case ',':
+                symbols[activeCard][activeSymbol].angle -= 1;
+                break;
+            case '.':
+                symbols[activeCard][activeSymbol].angle += 1;
+                break;
+            case 'm':
+                console.log(JSON.stringify(symbols[activeCard], ['x', 'y', 'angle', 'scale']));
+                break;
+        }
+
+        symbols[activeCard][activeSymbol].img.style.transform = 'translate(' + symbols[activeCard][activeSymbol].x + 'mm, ' + symbols[activeCard][activeSymbol].y + 'mm) rotate(' + symbols[activeCard][activeSymbol].angle + 'deg) scale(' + symbols[activeCard][activeSymbol].scale + ')';
+
+        event.preventDefault();
+    }, true);
+
+    function generateCards() {
+        const numberOfSymbolsOnCard = 8;
+        const n = numberOfSymbolsOnCard - 1;
+        const cards = [];
+
+        for(let i = 0; i < n + 1; i++) {
+            cards.push([1]);
+            for (let j = 0; j < n; j++) {
+                cards[i].push((j + 1) + (i * n) + 1);
+            }
+        }
+
+        for(let i = 0; i < n; i++) {
+            for (let j = 0; j < n; j++) {
+                cards.push([i + 2]);
+                for (let k = 0; k < n; k++) {
+                    let val = (n + 1 + n * k + (i * k + j) % n) + 1;
+                    cards[cards.length - 1].push(val);
+                }
+            }
+        }
+
+        cards.forEach(card => card.shuffle());
+
+        return cards;
+    }
+
+    const cards = generateCards();
+
+    for(let p = 0; p < 10; p++) {
+        let pa = document.createElement('div');
+        pa.classList.add('page');
+        document.body.append(pa);
+
+        for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 3; j++) {
+                let cardIndex = p * 6 + i * 3 + j;
+                if(cardIndex >= 57) continue;
+
+                let d = document.createElement('div');
+                d.classList.add('circle');
+                d.style.left = (15 + (85 + 10.5) * i) + 'mm';
+                d.style.top = (10.5 + (85 + 10.5) * j) + 'mm';
+                pa.append(d);
+
+                symbols.push([]);
+
+                let imgSetIndex = Math.floor(Math.random() * symbolSets.length);
+
+                for(let s = 0; s < 8; s++) {
+                    let img = document.createElement('img');
+
+                    img.src = imagesDirectory + '/' + cards[cardIndex][s] + '.png';
+
+                    img.style.width = '20mm';
+                    img.style.height = '20mm';
+                    img.style.objectFit = 'contain';
+                    img.style.position = 'absolute';
+                    img.style.transformOrigin = '10mm 10mm';
+
+                    let params = JSON.parse(JSON.stringify(symbolSets[imgSetIndex][s]));
+                    params.img = img;
+                    symbols[p * 6 + i * 3 + j].push(params);
+                    img.style.transform = 'rotate(' + params.angle + 'deg) scale(' + params.scale + ')';
+                    img.style.left = (32.5 + params.x) + 'mm';
+                    img.style.top = (32.5 + params.y) + 'mm';
+                    d.append(img);
+                }
+            }
+        }
+    }
+</script>
+</body>
+</html>
