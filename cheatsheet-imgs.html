@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Round Cards with Symbols</title>
+    <meta name="author" content="Steffen Hees">
+    <meta name="version" content="2021-07-13--16-00">
+</head>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    table, tr, td {
+        display: inline-block;
+        width: 100%;
+        height: 100%;
+    }
+
+    td {
+        border: 1px solid grey;
+        box-sizing: border-box;
+    }
+
+    .page {
+        width: 210mm;
+        height: 297mm;
+        position: relative;
+        border: 1px solid black;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    @media print {
+        html, body {
+            width: 210mm;
+            height: 297mm;
+        }
+
+        .page {
+            border: none;
+        }
+    }
+</style>
+<body class="page">
+    <table id="table" style="border: 1px solid black;">
+    </table>
+
+    <script>
+        const lables = {
+            f1: {
+                1: 'Alpha Tauri',
+                2: 'Ferrari',
+                3: 'Williams',
+                4: 'Haas',
+                5: 'Aston Martin',
+                6: 'Alpine',
+                7: 'Alfa Romeo',
+                8: 'McLaren',
+                9: 'Red Bull',
+                10: 'Mercedes',
+                11: 'Nicholas Latifi',
+                12: 'Yuki Tsunoda',
+                13: 'George Russell',
+                14: 'Mick Schumacher',
+                15: 'Carlos Sainz, Jr.',
+                16: 'Charles Leclerc',
+                17: 'Daniel Ricciardo',
+                18: 'Esteban Ocon',
+                19: 'Fernando Alonso',
+                20: 'Antonio Giovinazzi',
+                21: 'Lewis Hamilton',
+                22: 'Lando Norris',
+                23: 'Kimi Räikkönen',
+                24: 'Lance Stroll',
+                25: 'Max Verstappen',
+                26: 'Nikita Mazepin',
+                27: 'Pierre Gasly',
+                28: 'Sebastian Vettel',
+                29: 'Sergio Pérez',
+                30: 'Valtteri Bottas',
+                31: 'Team Alfa Romeo',
+                32: 'Team Alpine',
+                33: 'Team Aston Martin',
+                34: 'Team Ferrari',
+                35: 'Team Haas',
+                36: 'Team McLaren',
+                37: 'Team Mercedes',
+                38: 'Team Red Bull Racing',
+                39: 'Team AlphaTauri',
+                40: 'Team Williams',
+                41: 'Portuguese Grand Prix',
+                42: 'Mexican Grand Prix',
+                43: 'Azerbaijan Grand Prix',
+                44: 'Monaco Grand Prix',
+                45: 'Austria Grand Prix',
+                46: 'Abu Dhabi Grand Prix',
+                47: 'Spanish Grand Prix',
+                48: 'Hungarian Grand Prix',
+                49: 'Belgian Grand Prix',
+                50: 'Dutch Grand Prix',
+                51: 'Brazilian Grand Prix',
+                52: 'Turkish Grand Prix',
+                53: 'Italian Grand Prix',
+                54: 'Bahrain Grand Prix',
+                55: 'Chinese Grand Prix',
+                56: 'British Grand Prix',
+                57: 'Japanese Grand Prix'
+            },
+            cyberpunk: {
+                1: 'Johnny Silverhand',
+                2: 'Judy Álvarez',
+                3: 'Panam Palmer',
+                4: 'Kerry Eurodyne',
+                5: 'Altiera Cunningham - Alt',
+                6: 'Rogue Amendiares',
+                7: 'Adam Smasher',
+                8: 'Jackie Welles',
+                9: 'Viktor Vektor - Vik',
+                10: 'Dexter DeShawn - Dex',
+                11: 'Meredith Stout',
+                12: 'Misty Olszewski',
+                13: 'Evelyn Parker',
+                14: 'T-Bug',
+                15: 'Delamain',
+                16: 'Yorinobu Arasaka',
+                17: 'Saburo Arasaka - The Emperor',
+                18: 'Goro Takemura',
+                19: 'Saul Bright',
+                20: 'Mitch Anderson',
+                21: 'Wakako Okada',
+                22: 'Placide',
+                23: 'Maman Brigitte - Mama',
+                24: 'Sandayu Oda',
+                25: 'Hanako Arasaka',
+                26: 'Anders Hellman',
+                27: 'Spector Cheng',
+                28: 'Robert Wilson',
+                29: 'Marty Jenklow',
+                30: 'Andrew Jones',
+                31: 'Anna Nox - Annie',
+                32: 'Aoi Tsuki - Blue Moon',
+                33: 'Cassius Ryder',
+                34: 'Driss Meriana - Scorpion',
+                35: 'Elizabeth Peralez',
+                36: 'Futoshi Yamada',
+                37: 'Gerald Winkler - Garry the Prophet',
+                38: 'Haruyoshi Nishikata',
+                39: 'Jason Wildriver',
+                40: 'Kaiser Herzog - The Surgeon',
+                41: 'Elisabeth Wissenfurth - Lizzy Wizzy',
+                42: 'Lucius Rhyne',
+                43: 'Maiko Maeda',
+                44: 'Muamar Reyes - El Capitán',
+                45: 'Nina Kraviz',
+                46: 'Nix',
+                47: 'Oswald Forrest - Woodman',
+                48: 'Ozob Bozo',
+                49: 'Pepe Najarro',
+                50: 'Rita Wheeler',
+                51: 'Ruth Dzeng',
+                52: 'Sandra Dorsett',
+                53: 'Susan Abernathy',
+                54: 'Theo Price',
+                55: 'Weldon Holt - Rhyne\'s Bulldog',
+                56: 'Dr Yawen Packard',
+                57: 'Ziggy Q'
+            },
+            drinks: {
+                1: 'Ur-Krostitzer',
+                2: 'Tuborg Beer',
+                3: 'Guinness',
+                4: 'Absolut Vodka',
+                5: 'Possmann Apfelwein',
+                6: 'Astra',
+                7: 'Augustiner',
+                8: 'Kilkenny',
+                9: 'Baileys',
+                10: 'Beck\'s',
+                11: 'Ratsherren',
+                12: 'Berentzen',
+                13: 'Berliner Kindl',
+                14: 'Bären Pilsner',
+                15: 'Binding Lager',
+                16: 'Bionade',
+                17: 'Bitburger',
+                18: 'Budweiser',
+                19: 'Carlsberg',
+                20: 'Clausthaler Alkoholkfrei',
+                21: 'Corona Extra',
+                22: 'Desperados',
+                23: 'Dom Kölsch',
+                24: 'Duckstein',
+                25: 'Erdinger Weissbräu',
+                26: 'Feldschlößchen',
+                27: 'Flensburger',
+                28: 'Fosters',
+                29: 'Fürstenberg',
+                30: 'Hasseröder',
+                31: 'Heineken',
+                32: 'Holsten',
+                33: 'Jack Daniel\'s',
+                34: 'Jägermeister',
+                35: 'Jever',
+                36: 'Jim Beam',
+                37: 'Karamalz',
+                38: 'Kleiner Feigling',
+                39: 'Köstritzer',
+                40: 'Krombacher',
+                41: 'Licher',
+                42: 'Oettinger',
+                43: 'Veltins',
+                44: 'Dinkel Acker',
+                45: 'Rothhaus Tannenzäpfle',
+                46: 'Löwenbräu',
+                47: 'Pabst Blue Ribbon',
+                48: 'Paulaner',
+                49: 'Pilsener Urquell',
+                50: 'Radeberger',
+                51: 'Schöfferhofer',
+                52: 'Selters',
+                53: 'Peroni',
+                54: 'Stuttgarter Hofbräu',
+                55: 'Tucher',
+                56: 'Vitamalz',
+                57: 'Warsteiner'
+            },
+            dogs: {
+                1: '1',
+                2: 'Labrador',
+                3: '3',
+                4: '4',
+                5: 'Siberian Husky',
+                6: '6',
+                7: '7',
+                8: '8',
+                9: '9',
+                10: '10',
+                11: 'Afghanischer Windhund',
+                12: 'Englische Bulldogge',
+                13: '13',
+                14: '14',
+                15: '15',
+                16: '16',
+                17: '17',
+                18: '18',
+                19: '19',
+                20: '20',
+                21: '21',
+                22: 'Yorkshire Terrier',
+                23: '23',
+                24: 'Zwergspaniel',
+                25: 'Bernhardiner',
+                26: '26',
+                27: '27',
+                28: '28',
+                29: '29',
+                30: '30',
+                31: '31',
+                32: '32',
+                33: '33',
+                34: 'Schäferhund',
+                35: '35',
+                36: 'Bullterrier',
+                37: '37',
+                38: '38',
+                39: '39',
+                40: '40',
+                41: '41',
+                42: '42',
+                43: '43',
+                44: 'Chow Chow',
+                45: 'Welsh Corgi Pembroke',
+                46: 'Shiba Inu',
+                47: '47',
+                48: '48',
+                49: '49',
+                50: '50',
+                51: '51',
+                52: 'Shar-Pei',
+                53: '53',
+                54: '54',
+                55: '55',
+                56: '56',
+                57: 'Lang'
+            },
+            nextDesign: {
+                1: '',
+                2: '',
+                3: '',
+                4: '',
+                5: '',
+                6: '',
+                7: '',
+                8: '',
+                9: '',
+                10: '',
+                11: '',
+                12: '',
+                13: '',
+                14: '',
+                15: '',
+                16: '',
+                17: '',
+                18: '',
+                19: '',
+                20: '',
+                21: '',
+                22: '',
+                23: '',
+                24: '',
+                25: '',
+                26: '',
+                27: '',
+                28: '',
+                29: '',
+                30: '',
+                31: '',
+                32: '',
+                33: '',
+                34: '',
+                35: '',
+                36: '',
+                37: '',
+                38: '',
+                39: '',
+                40: '',
+                41: '',
+                42: '',
+                43: '',
+                44: '',
+                45: '',
+                46: '',
+                47: '',
+                48: '',
+                49: '',
+                50: '',
+                51: '',
+                52: '',
+                53: '',
+                54: '',
+                55: '',
+                56: '',
+                57: ''
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const design = urlParams.get('imgs');
+        const imagesDirectory = 'imgs_' + design;
+
+        const table = document.getElementById('table');
+        for(let r = 0; r < 19; r++) {
+            let row = document.createElement('tr');
+            row.style.height = '5.25%';
+            table.append(row);
+
+            for(let c = 0; c < 3; c++) {
+                const cellNumber = 19 * c + r + 1;
+                let cell = document.createElement('td');
+                cell.style.width = '33%';
+                row.append(cell);
+
+                let img = document.createElement('img');
+                img.src = imagesDirectory + '/' + cellNumber + '.png';
+                img.style.width = '33%';
+                img.style.height = '99%';
+                img.style.objectFit = 'contain';
+                cell.append(img);
+
+                let label = document.createElement('div');
+                cell.append(label);
+                label.style.display = 'inline-block';
+                label.style.width = '66%';
+                label.style.overflow = 'hidden';
+                label.style.fontFamily = 'Arial';
+                label.style.fontSize = '15px';
+                label.style.whiteSpace = 'nowrap';
+
+                label.innerHTML = '&nbsp;' + lables[design][cellNumber];
+            }
+        }
+    </script>
+</body>
+</html>
